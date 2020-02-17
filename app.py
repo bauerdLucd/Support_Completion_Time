@@ -11,7 +11,7 @@ import torch.nn.functional as functional
 
 path = ''
 
-export_file_url = 'https://www.dropbox.com/s/j5pi1o2mxzfwtcf/10Oct19_56.pkl?dl=1'
+export_file_url = 'https://www.dropbox.com/s/l6i6jlssxlzsdk9/service_desk_oneday.pt?dl=0'
 export_file_name = '10Oct19_56.pkl'
 
 
