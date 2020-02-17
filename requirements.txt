@@ -3,3 +3,4 @@ Gunicorn
 fastai
 torch
 pandas
+numpy
