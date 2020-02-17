@@ -12,7 +12,7 @@ import torch.nn.functional as functional
 path = ''
 
 export_file_url = 'https://www.dropbox.com/s/l6i6jlssxlzsdk9/service_desk_oneday.pt?dl=0'
-export_file_name = '10Oct19_56.pkl'
+export_file_name = 'service_desk_oneday.pt'
 
 
 class Net(nn.Module):
