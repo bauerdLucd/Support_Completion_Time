@@ -9,7 +9,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as functional
 
-path = './'
+path = ''
 
 export_file_url = 'https://www.dropbox.com/s/l6i6jlssxlzsdk9/service_desk_oneday.pt?dl=0'
 export_file_name = 'service_desk_oneday.pt'
@@ -96,7 +96,7 @@ def download_if_not_exists(filename, url):
 
 download_if_not_exists(export_file_name, export_file_url)
 
-checkpoint = torch.load(path + '/' + export_file_name)
+checkpoint = torch.load(export_file_name)
 # final_epoch = checkpoint['epoch']
 # final_loss = checkpoint['loss']
 es = checkpoint['embedding_sizes']
