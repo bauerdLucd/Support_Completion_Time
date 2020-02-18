@@ -29,6 +29,10 @@ class Net(nn.Module):
         output_width = len(data_model_mappings['Completion_Category'])
         input_width = (self.n_emb + self.n_cont) * 50
 
+	
+	
+	
+	
         if input_width > 500:
             input_width = 500
 
