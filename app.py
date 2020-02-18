@@ -12,65 +12,50 @@ import torch.nn.functional as functional
 path = './'
 
 export_file_url = 'https://www.dropbox.com/s/l6i6jlssxlzsdk9/service_desk_oneday.pt?dl=0'
-export_file_name = 'service_desk_oneday.pt'
+export_file_name = 'service_desk.pt'
+
+
+data_model_mappings = {}
 
 
 class Net(nn.Module):
     def __init__(self, embedding_sizes, n_cont):
-        global output_labels
+        global data_model_mappings
 
         super(Net, self).__init__()
+
         self.embeddings = nn.ModuleList([nn.Embedding(categories, size) for categories, size in embedding_sizes])
-        # length of all embeddings combined
         n_emb = sum(e.embedding_dim for e in self.embeddings)
         self.n_emb, self.n_cont = n_emb, n_cont
+        output_width = len(data_model_mappings['Completion_Category'])
+        input_width = (self.n_emb + self.n_cont) * 50
 
-        width = (self.n_emb + self.n_cont) * 50
+        if input_width > 500:
+            input_width = 500
 
-        if width > 500:
-            width = 500
+        hidden_width = (input_width // 8) + output_width
 
-        inner_width = (width // 8) + output_labels
+        input_width = 200
+        hidden_width = 70
 
-        width = 200
-        inner_width = 70
-
-        print(f"First layer dim: ({self.n_emb + self.n_cont}, {width}), Labels: {output_labels}, Inner: {inner_width}")
+        print(f"First layer dim: ({self.n_emb + self.n_cont}, {input_width}), Labels: {output_width}, Inner: {hidden_width}")
 
         # self.lin1 = nn.Linear(self.n_emb + self.n_cont, 200)
         # self.lin2 = nn.Linear(200, 70)
         # self.lin3 = nn.Linear(70, 4)
         # self.bn1 = nn.BatchNorm1d(self.n_cont)
         self.bn2 = nn.BatchNorm1d(self.n_emb + self.n_cont)
-        self.bn3 = nn.BatchNorm1d(width)
+        self.bn3 = nn.BatchNorm1d(input_width)
         self.emb_drop = nn.Dropout(0.6)
         self.drops = nn.Dropout(0.3)
 
-        self.fc1 = nn.Linear(self.n_emb + self.n_cont, width)
-        self.fc2 = nn.Linear(width, inner_width)
-        self.fc3 = nn.Linear(inner_width, output_labels)
+        self.fc1 = nn.Linear(self.n_emb + self.n_cont, input_width)
+        self.fc2 = nn.Linear(input_width, hidden_width)
+        self.fc3 = nn.Linear(hidden_width, output_width)
 
     def forward(self, x_cat, x_cont):
-        # print(f"Embeddings: {self.embeddings}")
-        # print(f"xcat: {x_cat}")
-
-        x = []
-        for i, e in enumerate(self.embeddings):
-            x.append(e(x_cat[:, i].long()))
-
+        x: list = [e(x_cat[:, i].long()) for i, e in enumerate(self.embeddings)]
         x = torch.cat(x, 1)
-        # x = self.emb_drop(x)
-        # x2 = self.bn1(x_cont)
-        # x = torch.cat([x, x2], 1)
-        # x = torch.cat([x], 1)
-        # x = functional.relu(self.lin1(x))
-        # x = self.drops(x)
-        # x = self.bn2(x)
-        # x = functional.relu(self.lin2(x))
-        # x = self.drops(x)
-        # x = self.bn3(x)
-        # x = self.lin3(x)
-
         x = self.emb_drop(x)
         x = self.bn2(x)
         x = functional.relu(self.fc1(x))
@@ -111,16 +96,17 @@ def download_if_not_exists(filename, url):
 
 download_if_not_exists(export_file_name, export_file_url)
 
-checkpoint = torch.load(path + '/' +export_file_name)
+checkpoint = torch.load(path + '/' + export_file_name)
 # final_epoch = checkpoint['epoch']
 # final_loss = checkpoint['loss']
 es = checkpoint['embedding_sizes']
 td = checkpoint['training_data']
+data_model_mappings = checkpoint['data_mappings']
 
 # create network
-net = Net(es, None)
-net.load_state_dict(torch.load())
+net = Net(es, 0)
 net.load_state_dict(checkpoint['model_state_dict'])
+net.eval()
 
 # create optimizer
 criterion = nn.CrossEntropyLoss()
